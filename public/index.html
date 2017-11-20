@@ -24,11 +24,11 @@
             <a href="" data-activates="mobile-demo" class="button-collapse"><i class="material-icons">menu</i></a>
             <ul class="hide-on-large-only right">
                <li>
-                  <a href=""><i id="inbox-icon" class="left material-icons">inbox</i><span class="new badge">4</span></a>
+                  <a href="#inboxModal" class="inboxLink modal-trigger"><i id="inbox-icon" class="left material-icons">inbox</i><span class="new badge">4</span></a>
                </li>
             </ul>
             <ul class="right hide-on-med-and-down">
-               <li><a>Notifications<span class="new badge">4</span></a></li>
+               <li><a href="#inboxModal" class="inboxLink modal-trigger">Inbox<span class="new badge">4</span></a></li>
                <li><a href="profile.html">Profile</a></li>
                <li><a onClick="logout()">Logout</a></li>
             </ul>
@@ -101,6 +101,20 @@
               <a class="btn-floating waves-effect purple white-text right hide-on-small-only" onclick="$('.carousel').carousel('next');"><i class="material-icons">arrow_forward</i></a>
             </div>
           </div>
+         </div>
+      </div>
+      <div id="inboxModal" class="modal modal-fixed-footer">
+         <div class="modal-content">
+            <h4>Inbox</h4>
+            <div style="height:70%;overflow:auto;">
+               <table class="highlight bordered">
+                  <tbody id="course-table-body">
+                  </tbody>
+               </table>
+            </div>
+         </div>
+         <div class="modal-footer">
+            <a class="purple white-text modal-action modal-close waves-effect waves-light btn-flat">Done</a>
          </div>
       </div>
       <script src="https://www.gstatic.com/firebasejs/4.6.0/firebase.js"></script>

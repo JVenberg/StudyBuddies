@@ -23,6 +23,7 @@ $(document).ready(function(){
       var ch = $('.carousel-item').height();
       $(".carousel-item").css({'max-width':ch/2+'px'});
       $(".carousel-item").css({"left":"calc(50% - " + ch/4 + "px)"});
+      $("#userInfo").css({'max-width':ch/2 + 200+'px'})
       $('.carousel.carousel-slider').carousel({
         duration: 200,
         fullWidth: true,
@@ -33,6 +34,8 @@ $(document).ready(function(){
       $('.carousel.carousel-slider').carousel("set", carouselIndex);
     }
   });
+  $('#inboxModal').modal();
+  // $(".inboxLink").on("click touchstart", inboxClicked);
 
   // var string1 = "1C2jKe4RaWeMzu7CYElAb9CDwWm3";
   // var string2 = "3mkYuuWX2JUfpspI31G9RW65DKO2";
@@ -181,6 +184,10 @@ function userInfoClicked() {
   cidInfoPopup = this.dataset.classId;
   carouselIndex = this.dataset.userIndex;
   updateInfoModal(true);
+}
+
+function inboxClicked() {
+  // $('#inboxModal').modal("open");
 }
 
 function updateInfoModal(openModal) {
