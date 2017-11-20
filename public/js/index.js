@@ -43,7 +43,7 @@ function authChange(uid, data) {
     userCoursesUpdated(snapshot);
   });
   db.ref("inbox/" + uid).on("value", function(snapshot) {
-    inboxUpdated(snapshot.val());
+    inboxUpdated(snapshot);
   });
 }
 
@@ -61,7 +61,7 @@ function userCoursesUpdated(snapshot) {
   coursesUpdated(user_courses, opened);
   for (var cid in user_courses) {
     db.ref('user_courses/' + cid).on('value', function(snapshot) {
-      courseUpdated(snapshot);
+      courseUpdated(snapshot, snapshot.key);
     });
   }
 
@@ -79,8 +79,9 @@ function userCoursesUpdated(snapshot) {
   });
 }
 
-function inboxUpdated(inbox) {
-  var unread = 0
+function inboxUpdated(snapshot) {
+  var unread = 0;
+  var inbox = snapshot.val();
   for (var sender in inbox) {
     var read = inbox[sender]["read"];
     if (!read) {
@@ -93,13 +94,18 @@ function inboxUpdated(inbox) {
       } else {
         this.style.display = "none";
       }
-    })
+    });
   }
+  courseUpdated(snapshot, "inbox", true)
 }
 
-function courseUpdated(snapshot) {
+function courseUpdated(snapshot, courseId, inbox) {
   var user_data = snapshot.val();
-  var bodyElement = document.getElementById(snapshot.key + "_list").children[1];
+  if (inbox) {
+    var bodyElement = document.getElementById("inboxContent");
+  } else {
+    var bodyElement = document.getElementById(courseId + "_list").children[1];
+  }
   bodyElement.innerHTML = "";
 
   var collectionContainer = document.createElement("div");
@@ -126,7 +132,7 @@ function courseUpdated(snapshot) {
       var secondaryContent = document.createElement("a");
       secondaryContent.classList = "secondary-content waves-effect waves-light btn-flat purple white-text"
       secondaryContent.innerHTML = "<span class='hide-on-small-only'>More </span>Info";
-      secondaryContent.dataset.classId = snapshot.key;
+      secondaryContent.dataset.classId = courseId;
       secondaryContent.dataset.userIndex = index;
       index++;
       avatarItem.appendChild(img);
@@ -142,7 +148,7 @@ function courseUpdated(snapshot) {
     noUser.classList = "collection-item center";
     noUser.innerHTML = "<div class='chip'>No New Classmates</div>";
     collection.appendChild(noUser);
-  } else {
+  } else if (!inbox) {
     var usersLabel = document.createElement("h5");
     usersLabel.classList = "center";
     usersLabel.innerHTML = "New Classmates";
