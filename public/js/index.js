@@ -87,9 +87,10 @@ function inboxUpdated(snapshot) {
     if (!read) {
       unread++;
     }
+    console.log(unread)
     $(".badge").each(function() {
       this.innerHTML = unread;
-      if (unread > 1) {
+      if (unread > 0) {
         this.style.display = "inline-block";
       } else {
         this.style.display = "none";
@@ -113,72 +114,73 @@ function courseUpdated(snapshot, courseId, inbox) {
   var collection = document.createElement("ul");
   collection.classList = "collection";
 
-  var disabledUsers = user_data[uid];
-
-  var usersToUpdate = [];
-  index = 0;
-  for (var userId in user_data) {
-    if (userId != uid && (disabledUsers == undefined || disabledUsers[userId] == undefined)) {
-      var avatarItem = document.createElement("li");
-      avatarItem.classList = "collection-item avatar";
-      var img = document.createElement("img");
-      img.classList = "circle";
-      img.classList += " " + userId + "_img";
-      var title = document.createElement("span");
-      title.classList = "title";
-      title.classList += " " + userId + "_title";
-      var content = document.createElement("p");
-      content.classList += " " + userId + "_content";
-      var secondaryContent = document.createElement("a");
-      secondaryContent.classList = "secondary-content waves-effect waves-light btn-flat purple white-text"
-      secondaryContent.innerHTML = "<span class='hide-on-small-only'>More </span>Info";
-      secondaryContent.dataset.classId = courseId;
-      secondaryContent.dataset.userIndex = index;
-      index++;
-      avatarItem.appendChild(img);
-      avatarItem.appendChild(title);
-      avatarItem.appendChild(content);
-      avatarItem.appendChild(secondaryContent);
-      collection.appendChild(avatarItem);
-      usersToUpdate.push(userId);
+  if (user_data != null) {
+    var disabledUsers = user_data[uid];
+    var usersToUpdate = [];
+    index = 0;
+    for (var userId in user_data) {
+      if (userId != uid && (disabledUsers == undefined || disabledUsers[userId] == undefined)) {
+        var avatarItem = document.createElement("li");
+        avatarItem.classList = "collection-item avatar";
+        var img = document.createElement("img");
+        img.classList = "circle";
+        img.classList += " " + userId + "_img";
+        var title = document.createElement("span");
+        title.classList = "title";
+        title.classList += " " + userId + "_title";
+        var content = document.createElement("p");
+        content.classList += " " + userId + "_content";
+        var secondaryContent = document.createElement("a");
+        secondaryContent.classList = "secondary-content waves-effect waves-light btn-flat purple white-text"
+        secondaryContent.innerHTML = "<span class='hide-on-small-only'>More </span>Info";
+        secondaryContent.dataset.classId = courseId;
+        secondaryContent.dataset.userIndex = index;
+        index++;
+        avatarItem.appendChild(img);
+        avatarItem.appendChild(title);
+        avatarItem.appendChild(content);
+        avatarItem.appendChild(secondaryContent);
+        collection.appendChild(avatarItem);
+        usersToUpdate.push(userId);
+      }
     }
-  }
-  if (usersToUpdate.length == 0) {
-    var noUser = document.createElement("li");
-    noUser.classList = "collection-item center";
-    noUser.innerHTML = "<div class='chip'>No New Classmates</div>";
-    collection.appendChild(noUser);
-  } else if (!inbox) {
-    var usersLabel = document.createElement("h5");
-    usersLabel.classList = "center";
-    usersLabel.innerHTML = "New Classmates";
-    bodyElement.appendChild(usersLabel);
-  }
-  collectionContainer.appendChild(collection);
-  bodyElement.appendChild(collectionContainer);
-  $('.secondary-content').on("click touchstart", userInfoClicked);
+    if (usersToUpdate.length == 0) {
+      var noUser = document.createElement("li");
+      noUser.classList = "collection-item center";
+      noUser.innerHTML = "<div class='chip'>No New Classmates</div>";
+      collection.appendChild(noUser);
+    } else if (!inbox) {
+      var usersLabel = document.createElement("h5");
+      usersLabel.classList = "center";
+      usersLabel.innerHTML = "New Classmates";
+      bodyElement.appendChild(usersLabel);
+    }
+    collectionContainer.appendChild(collection);
+    bodyElement.appendChild(collectionContainer);
+    $('.secondary-content').on("click touchstart", userInfoClicked);
 
-  for (var i = 0; i < usersToUpdate.length; i++) {
-    var usersToUpdateID = usersToUpdate[i];
-    db.ref("shared_data/public_data/" + usersToUpdateID).once("value").then(function(snapshot) {
-      var usersToUpdateID = snapshot.key;
-      var data = snapshot.val();
-      $("." + usersToUpdateID + "_img").each(function() {
-        if (data["photoURL"]) {
-          this.src = data["photoURL"];
-        } else {
-          this.src = "defaultprofile.jpg"
-        }
+    for (var i = 0; i < usersToUpdate.length; i++) {
+      var usersToUpdateID = usersToUpdate[i];
+      db.ref("shared_data/public_data/" + usersToUpdateID).once("value").then(function(snapshot) {
+        var usersToUpdateID = snapshot.key;
+        var data = snapshot.val();
+        $("." + usersToUpdateID + "_img").each(function() {
+          if (data["photoURL"]) {
+            this.src = data["photoURL"];
+          } else {
+            this.src = "defaultprofile.jpg"
+          }
+        });
+        $("." + usersToUpdateID + "_title").each(function() {
+          this.innerHTML = data["first"] + " " + data["last"];
+        });
+        $("." + usersToUpdateID + "_content").each(function() {
+          this.innerHTML = "<p>" + data["year"] + "</p>";
+        });
       });
-      $("." + usersToUpdateID + "_title").each(function() {
-        this.innerHTML = data["first"] + " " + data["last"];
-      });
-      $("." + usersToUpdateID + "_content").each(function() {
-        this.innerHTML = "<p>" + data["year"] + "</p>";
-      });
-    });
+    }
+    updateInfoModal();
   }
-  updateInfoModal();
 }
 
 var carouselIndex;
