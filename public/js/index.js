@@ -40,53 +40,53 @@ $(document).ready(function(){
 function authChange(uid, data) {
   console.log(uid);
   db.ref('users/' + uid + '/courses').on('value', function(snapshot) {
-    user_courses = snapshot.val();
-    var opened;
-    $(".collapsible-header.active > .not-collapse > i").each(function() {
-      opened = this.dataset.courseNumber;
-    })
+    userCoursesUpdated(snapshot);
+  });
+  db.ref("inbox/" + uid).on("value", function(snapshot) {
+    inboxUpdated(snapshot.val());
+  });
+}
 
-    $(".collapsible-header > .not-collapse > i").each(function() {
-      db.ref('user_courses/' + this.dataset.courseNumber).off()
-    })
+function userCoursesUpdated(snapshot) {
+  user_courses = snapshot.val();
+  var opened;
+  $(".collapsible-header.active > .not-collapse > i").each(function() {
+    opened = this.dataset.courseNumber;
+  })
 
-    db.ref("inbox/" + uid).on("value", function(snapshot) {
-      inboxUpdated(snapshot.val());
+  $(".collapsible-header > .not-collapse > i").each(function() {
+    db.ref('user_courses/' + this.dataset.courseNumber).off()
+  })
+
+  coursesUpdated(user_courses, opened);
+  for (var cid in user_courses) {
+    db.ref('user_courses/' + cid).on('value', function(snapshot) {
+      courseUpdated(snapshot);
     });
+  }
 
-    coursesUpdated(user_courses, opened);
-    for (var cid in user_courses) {
-      db.ref('user_courses/' + cid).on('value', function(snapshot) {
-        courseUpdated(snapshot);
-      });
+  $(':checkbox').change(function() {
+    db.ref("users/" + uid + "/courses/" + this.id.replace("_checkbox", "") + "/enabled").set(this.checked);
+    if (this.checked) {
+      db.ref('user_courses/' + this.id.replace("_checkbox", "") + "/" + uid).set(true);
+    } else {
+      db.ref('user_courses/' + this.id.replace("_checkbox", "") + "/" + uid).remove();
     }
-
-    $(':checkbox').change(function() {
-      db.ref("users/" + uid + "/courses/" + this.id.replace("_checkbox", "") + "/enabled").set(this.checked);
-      if (this.checked) {
-        db.ref('user_courses/' + this.id.replace("_checkbox", "") + "/" + uid).set(true);
-      } else {
-        db.ref('user_courses/' + this.id.replace("_checkbox", "") + "/" + uid).remove();
-      }
-      updateSwitch(this.id.replace("_checkbox", ""), this.checked);
-    });
-    $(':checkbox').each(function() {
-      updateSwitch(this.id.replace("_checkbox", ""), this.checked);
-    });
+    updateSwitch(this.id.replace("_checkbox", ""), this.checked);
+  });
+  $(':checkbox').each(function() {
+    updateSwitch(this.id.replace("_checkbox", ""), this.checked);
   });
 }
 
 function inboxUpdated(inbox) {
   var unread = 0
-  console.log("Inbox", inbox);
   for (var sender in inbox) {
     var read = inbox[sender]["read"];
     if (!read) {
       unread++;
     }
-    console.log(unread);
     $(".badge").each(function() {
-      console.log(this);
       this.innerHTML = unread;
       if (unread > 1) {
         this.style.display = "inline-block";
