@@ -35,21 +35,7 @@ $(document).ready(function(){
     }
   });
   $('#inboxModal').modal();
-  // $(".inboxLink").on("click touchstart", inboxClicked);
-
-  // var string1 = "1C2jKe4RaWeMzu7CYElAb9CDwWm3";
-  // var string2 = "3mkYuuWX2JUfpspI31G9RW65DKO2";
-  // console.log(combineStrings(string1, string2));
-  // console.log(combineStrings(string2, string1));
 });
-
-function combineStrings(string1, string2) {
-  if (string1 < string2) {
-    return (string1 + string2);
-  } else {
-    return (string2 + string1);
-  }
-}
 
 function authChange(uid, data) {
   console.log(uid);
@@ -65,110 +51,13 @@ function authChange(uid, data) {
     })
 
     db.ref("inbox/" + uid).on("value", function(snapshot) {
-      var unread = 0
-      var inbox = snapshot.val();
-      console.log("Inbox", inbox);
-      for (var sender in inbox) {
-        var read = inbox[sender]["read"];
-        if (!read) {
-          unread++;
-        }
-        console.log(unread);
-        $(".badge").each(function() {
-          console.log(this);
-          this.innerHTML = unread;
-          if (unread > 1) {
-            this.style.display = "inline-block";
-          } else {
-            this.style.display = "none";
-          }
-        })
-      }
+      inboxUpdated(snapshot.val());
     });
 
     coursesUpdated(user_courses, opened);
     for (var cid in user_courses) {
-      db.ref('user_courses/' + cid).on('value', function(snapshot, cid) {
-        // console.log(snapshot.key, snapshot.val());
-        var user_data = snapshot.val();
-        var bodyElement = document.getElementById(snapshot.key + "_list").children[1];
-        bodyElement.innerHTML = "";
-        
-        // TODO No Classmates
-
-        var collectionContainer = document.createElement("div");
-        collectionContainer.style = "max-height:300px;overflow:auto;"
-        var collection = document.createElement("ul");
-        collection.classList = "collection";
-
-
-        var disabledUsers = user_data[uid];
-
-        var usersToUpdate = [];
-        index = 0;
-        for (var userId in user_data) {
-          if (userId != uid && (disabledUsers == undefined || disabledUsers[userId] == undefined)) {
-            var avatarItem = document.createElement("li");
-            avatarItem.classList = "collection-item avatar";
-            var img = document.createElement("img");
-            img.classList = "circle";
-            img.classList += " " + userId + "_img";
-            var title = document.createElement("span");
-            title.classList = "title";
-            title.classList += " " + userId + "_title";
-            var content = document.createElement("p");
-            content.classList += " " + userId + "_content";
-            var secondaryContent = document.createElement("a");
-            secondaryContent.classList = "secondary-content waves-effect waves-light btn-flat purple white-text"
-            secondaryContent.innerHTML = "<span class='hide-on-small-only'>More </span>Info";
-            secondaryContent.dataset.classId = snapshot.key;
-            secondaryContent.dataset.userIndex = index;
-            index++;
-            // secondaryContent.onclick = userInfoClicked;
-            avatarItem.appendChild(img);
-            avatarItem.appendChild(title);
-            avatarItem.appendChild(content);
-            avatarItem.appendChild(secondaryContent);
-            collection.appendChild(avatarItem);
-            usersToUpdate.push(userId);
-          }
-        }
-        if (usersToUpdate.length == 0) {
-          var noUser = document.createElement("li");
-          noUser.classList = "collection-item center";
-          noUser.innerHTML = "<div class='chip'>No New Classmates</div>";
-          collection.appendChild(noUser);
-        } else {
-          var usersLabel = document.createElement("h5");
-          usersLabel.classList = "center";
-          usersLabel.innerHTML = "New Classmates";
-          bodyElement.appendChild(usersLabel);
-        }
-        collectionContainer.appendChild(collection);
-        bodyElement.appendChild(collectionContainer);
-        $('.secondary-content').on("click touchstart", userInfoClicked);
-
-        for (var i = 0; i < usersToUpdate.length; i++) {
-          var usersToUpdateID = usersToUpdate[i];
-          db.ref("shared_data/public_data/" + usersToUpdateID).once("value").then(function(snapshot) {
-            var usersToUpdateID = snapshot.key;
-            var data = snapshot.val();
-            $("." + usersToUpdateID + "_img").each(function() {
-              if (data["photoURL"]) {
-                this.src = data["photoURL"];
-              } else {
-                this.src = "defaultprofile.jpg"
-              }
-            });
-            $("." + usersToUpdateID + "_title").each(function() {
-              this.innerHTML = data["first"] + " " + data["last"];
-            });
-            $("." + usersToUpdateID + "_content").each(function() {
-              this.innerHTML = "<p>" + data["year"] + "</p>";
-            });
-          });
-        }
-        updateInfoModal();
+      db.ref('user_courses/' + cid).on('value', function(snapshot) {
+        courseUpdated(snapshot);
       });
     }
 
@@ -187,17 +76,103 @@ function authChange(uid, data) {
   });
 }
 
-function updateSwitch(id, checked) {
-  // console.log(id, checked);
-  var listElement = document.getElementById(id + "_list");
-  if (checked) {
-    listElement.classList = "";
-    $(listElement).off("click");
-  } else {
-    $('.collapsible').collapsible("close", listElement.dataset.index);
-    listElement.classList = "disabled not-collapse";
-    $(listElement).on("click", function(e) { e.stopPropagation(); });
+function inboxUpdated(inbox) {
+  var unread = 0
+  console.log("Inbox", inbox);
+  for (var sender in inbox) {
+    var read = inbox[sender]["read"];
+    if (!read) {
+      unread++;
+    }
+    console.log(unread);
+    $(".badge").each(function() {
+      console.log(this);
+      this.innerHTML = unread;
+      if (unread > 1) {
+        this.style.display = "inline-block";
+      } else {
+        this.style.display = "none";
+      }
+    })
   }
+}
+
+function courseUpdated(snapshot) {
+  var user_data = snapshot.val();
+  var bodyElement = document.getElementById(snapshot.key + "_list").children[1];
+  bodyElement.innerHTML = "";
+
+  var collectionContainer = document.createElement("div");
+  collectionContainer.style = "max-height:300px;overflow:auto;"
+  var collection = document.createElement("ul");
+  collection.classList = "collection";
+
+  var disabledUsers = user_data[uid];
+
+  var usersToUpdate = [];
+  index = 0;
+  for (var userId in user_data) {
+    if (userId != uid && (disabledUsers == undefined || disabledUsers[userId] == undefined)) {
+      var avatarItem = document.createElement("li");
+      avatarItem.classList = "collection-item avatar";
+      var img = document.createElement("img");
+      img.classList = "circle";
+      img.classList += " " + userId + "_img";
+      var title = document.createElement("span");
+      title.classList = "title";
+      title.classList += " " + userId + "_title";
+      var content = document.createElement("p");
+      content.classList += " " + userId + "_content";
+      var secondaryContent = document.createElement("a");
+      secondaryContent.classList = "secondary-content waves-effect waves-light btn-flat purple white-text"
+      secondaryContent.innerHTML = "<span class='hide-on-small-only'>More </span>Info";
+      secondaryContent.dataset.classId = snapshot.key;
+      secondaryContent.dataset.userIndex = index;
+      index++;
+      avatarItem.appendChild(img);
+      avatarItem.appendChild(title);
+      avatarItem.appendChild(content);
+      avatarItem.appendChild(secondaryContent);
+      collection.appendChild(avatarItem);
+      usersToUpdate.push(userId);
+    }
+  }
+  if (usersToUpdate.length == 0) {
+    var noUser = document.createElement("li");
+    noUser.classList = "collection-item center";
+    noUser.innerHTML = "<div class='chip'>No New Classmates</div>";
+    collection.appendChild(noUser);
+  } else {
+    var usersLabel = document.createElement("h5");
+    usersLabel.classList = "center";
+    usersLabel.innerHTML = "New Classmates";
+    bodyElement.appendChild(usersLabel);
+  }
+  collectionContainer.appendChild(collection);
+  bodyElement.appendChild(collectionContainer);
+  $('.secondary-content').on("click touchstart", userInfoClicked);
+
+  for (var i = 0; i < usersToUpdate.length; i++) {
+    var usersToUpdateID = usersToUpdate[i];
+    db.ref("shared_data/public_data/" + usersToUpdateID).once("value").then(function(snapshot) {
+      var usersToUpdateID = snapshot.key;
+      var data = snapshot.val();
+      $("." + usersToUpdateID + "_img").each(function() {
+        if (data["photoURL"]) {
+          this.src = data["photoURL"];
+        } else {
+          this.src = "defaultprofile.jpg"
+        }
+      });
+      $("." + usersToUpdateID + "_title").each(function() {
+        this.innerHTML = data["first"] + " " + data["last"];
+      });
+      $("." + usersToUpdateID + "_content").each(function() {
+        this.innerHTML = "<p>" + data["year"] + "</p>";
+      });
+    });
+  }
+  updateInfoModal();
 }
 
 var carouselIndex;
@@ -208,8 +183,9 @@ function userInfoClicked() {
   updateInfoModal(true);
 }
 
-function inboxClicked() {
-  // $('#inboxModal').modal("open");
+function closeInfo() {
+  console.log("Test");
+  $('#userInfo').modal('close');
 }
 
 function updateInfoModal(openModal) {
@@ -335,9 +311,18 @@ function updateInfoModal(openModal) {
   }
 }
 
-function closeInfo() {
-  console.log("Test");
-  $('#userInfo').modal('close');
+function addUser() {
+  disableUser(this);
+  console.log("Start Inbox");
+  db.ref("inbox/" + this.dataset.userId + "/" + uid).set({
+    read: false
+  }).then(function() {
+    console.log("Added to inbox");
+  })
+}
+
+function hideUser() {
+  disableUser(this);
 }
 
 function disableUser(passedThis) {
@@ -365,19 +350,20 @@ function disableUser(passedThis) {
   });
 }
 
-function hideUser() {
-  disableUser(this);
+function updateSwitch(id, checked) {
+  // console.log(id, checked);
+  var listElement = document.getElementById(id + "_list");
+  if (checked) {
+    listElement.classList = "";
+    $(listElement).off("click");
+  } else {
+    $('.collapsible').collapsible("close", listElement.dataset.index);
+    listElement.classList = "disabled not-collapse";
+    $(listElement).on("click", function(e) { e.stopPropagation(); });
+  }
 }
 
-function addUser() {
-  disableUser(this);
-  console.log("Start Inbox");
-  db.ref("inbox/" + this.dataset.userId + "/" + uid).set({
-    read: false
-  }).then(function() {
-    console.log("Added to inbox");
-  })
-}
+/* ADD COURSES FUNCTION */
 
 $("#addCourseBtn").one("click", function() {
   db.ref('curriculum_search').once("value").then(function(snapshot) {
@@ -604,4 +590,12 @@ function addRow(table, curr, num, name) {
   add.classList += " table-add";
   row.appendChild(add);
   table.appendChild(row);
+}
+
+function combineStrings(string1, string2) {
+  if (string1 < string2) {
+    return (string1 + string2);
+  } else {
+    return (string2 + string1);
+  }
 }
