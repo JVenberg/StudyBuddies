@@ -327,6 +327,9 @@ function addUser() {
   }).then(function() {
     console.log("Added to inbox");
   })
+  db.ref("matches/" + combineStrings(uid, this.dataset.userId) + "/" + uid).set(true).then(function() {
+    console.log("Added to matches");
+  })
 }
 
 function hideUser() {
@@ -602,8 +605,8 @@ function addRow(table, curr, num, name) {
 
 function combineStrings(string1, string2) {
   if (string1 < string2) {
-    return (string1 + string2);
+    return (string1 + "|" + string2);
   } else {
-    return (string2 + string1);
+    return (string2 + "|" + string1);
   }
 }
