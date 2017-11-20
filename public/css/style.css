@@ -246,7 +246,8 @@ textarea {
    padding-top: 2px;
 }
 
-.badge {
+nav ul a span.badge {
    padding-bottom: 2px;
+   display: none;
 }
 

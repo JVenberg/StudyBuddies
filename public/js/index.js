@@ -64,6 +64,28 @@ function authChange(uid, data) {
       db.ref('user_courses/' + this.dataset.courseNumber).off()
     })
 
+    db.ref("inbox/" + uid).on("value", function(snapshot) {
+      var unread = 0
+      var inbox = snapshot.val();
+      console.log("Inbox", inbox);
+      for (var sender in inbox) {
+        var read = inbox[sender]["read"];
+        if (!read) {
+          unread++;
+        }
+        console.log(unread);
+        $(".badge").each(function() {
+          console.log(this);
+          this.innerHTML = unread;
+          if (unread > 1) {
+            this.style.display = "inline-block";
+          } else {
+            this.style.display = "none";
+          }
+        })
+      }
+    });
+
     coursesUpdated(user_courses, opened);
     for (var cid in user_courses) {
       db.ref('user_courses/' + cid).on('value', function(snapshot, cid) {
@@ -349,6 +371,12 @@ function hideUser() {
 
 function addUser() {
   disableUser(this);
+  console.log("Start Inbox");
+  db.ref("inbox/" + this.dataset.userId + "/" + uid).set({
+    read: false
+  }).then(function() {
+    console.log("Added to inbox");
+  })
 }
 
 $("#addCourseBtn").one("click", function() {
