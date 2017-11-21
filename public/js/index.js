@@ -76,12 +76,12 @@ function matchesUpdated(snapshot) {
       avatarItem.classList = "collection-item avatar";
       var img = document.createElement("img");
       img.classList = "circle";
-      img.id = userId + "_img";
+      img.id = userId + "_match_img";
       var title = document.createElement("span");
       title.classList = "title";
-      title.id = userId + "_title";
+      title.id = userId + "_match_title";
       var content = document.createElement("p");
-      content.id = userId + "_content";
+      content.id = userId + "_match_content";
       // var secondaryContent = document.createElement("a");
       // secondaryContent.classList = "secondary-content waves-effect waves-light btn-flat purple white-text"
       // secondaryContent.innerHTML = "<span class='hide-on-small-only'>More </span>Info";
@@ -101,14 +101,14 @@ function matchesUpdated(snapshot) {
         var usersToUpdateID = snapshot.key;
         var data = snapshot.val();
         if (data["photoURL"]) {
-          document.getElementById(usersToUpdateID + "_img").src = data["photoURL"];
+          document.getElementById(usersToUpdateID + "_match_img").src = data["photoURL"];
         } else {
-          document.getElementById(usersToUpdateID + "_img").src = "defaultprofile.jpg"
+          document.getElementById(usersToUpdateID + "_match_img").src = "defaultprofile.jpg"
         }
-        document.getElementById(usersToUpdateID + "_title").innerHTML = data["first"] + " " + data["last"];
-        document.getElementById(usersToUpdateID + "_content").innerHTML = "<p>" + data["year"] + "</p>";
-        document.getElementById(usersToUpdateID + "_content").innerHTML += "<p>" + data["phone"] + "</p>";
-        document.getElementById(usersToUpdateID + "_content").innerHTML += "<p>" + data["email"] + "</p>";
+        document.getElementById(usersToUpdateID + "_match_title").innerHTML = data["first"] + " " + data["last"];
+        document.getElementById(usersToUpdateID + "_match_content").innerHTML = "<p>" + data["year"] + "</p>";
+        document.getElementById(usersToUpdateID + "_match_content").innerHTML += "<p>" + data["phone"] + "</p>";
+        document.getElementById(usersToUpdateID + "_match_content").innerHTML += "<p>" + data["email"] + "</p>";
       });
     }
   } else {
