@@ -45,6 +45,78 @@ function authChange(uid, data) {
   db.ref("inbox/" + uid).on("value", function(snapshot) {
     inboxUpdated(snapshot);
   });
+  db.ref("matches").orderByChild(uid).startAt(true).endAt(true).on("value", function(snapshot) {
+    matchesUpdated(snapshot);
+  });
+}
+
+function matchesUpdated(snapshot) {
+  var matches = snapshot.val();
+  var matchedIds = []
+  for (var matchKey in matches) {
+    var match = matches[matchKey]
+    var isTwo = Object.keys(match).length > 1;
+    if (isTwo) {
+      var otherUid;
+      for (var userId in match) {
+        if (userId != uid) {
+          otherUid = userId;
+        }
+      }
+      matchedIds.push(otherUid);
+    }
+  }
+  var collection = document.getElementById("matchedCollection");
+  collection.innerHTML = "";
+  if (matchedIds.length > 0) {
+    matchUsersToUpdate = [];
+    for (var i = 0; i < matchedIds.length; i++) {
+      var userId = matchedIds[i];
+      var avatarItem = document.createElement("li");
+      avatarItem.classList = "collection-item avatar";
+      var img = document.createElement("img");
+      img.classList = "circle";
+      img.id = userId + "_img";
+      var title = document.createElement("span");
+      title.classList = "title";
+      title.id = userId + "_title";
+      var content = document.createElement("p");
+      content.id = userId + "_content";
+      // var secondaryContent = document.createElement("a");
+      // secondaryContent.classList = "secondary-content waves-effect waves-light btn-flat purple white-text"
+      // secondaryContent.innerHTML = "<span class='hide-on-small-only'>More </span>Info";
+      // secondaryContent.dataset.classId = courseId;
+      // secondaryContent.dataset.userIndex = index;
+      // index++;
+      avatarItem.appendChild(img);
+      avatarItem.appendChild(title);
+      avatarItem.appendChild(content);
+      // avatarItem.appendChild(secondaryContent);
+      collection.appendChild(avatarItem);
+      matchUsersToUpdate.push(userId);
+    }
+    for (var i = 0; i < matchUsersToUpdate.length; i++) {
+      var usersToUpdateID = matchUsersToUpdate[i];
+      db.ref("users/" + usersToUpdateID).once("value").then(function(snapshot) {
+        var usersToUpdateID = snapshot.key;
+        var data = snapshot.val();
+        if (data["photoURL"]) {
+          document.getElementById(usersToUpdateID + "_img").src = data["photoURL"];
+        } else {
+          document.getElementById(usersToUpdateID + "_img").src = "defaultprofile.jpg"
+        }
+        document.getElementById(usersToUpdateID + "_title").innerHTML = data["first"] + " " + data["last"];
+        document.getElementById(usersToUpdateID + "_content").innerHTML = "<p>" + data["year"] + "</p>";
+        document.getElementById(usersToUpdateID + "_content").innerHTML += "<p>" + data["phone"] + "</p>";
+        document.getElementById(usersToUpdateID + "_content").innerHTML += "<p>" + data["email"] + "</p>";
+      });
+    }
+  } else {
+    var noMatch = document.createElement("li");
+    noMatch.classList = "collection-item center";
+    noMatch.innerHTML = "<div class='chip'>No Matches</div>";
+    collection.appendChild(noMatch);
+  }
 }
 
 function userCoursesUpdated(snapshot) {
@@ -206,15 +278,15 @@ function closeInfo() {
 
 function updateInfoModal(refStr, openModal) {
   console.log(cidInfoPopup);
-  // if (cidInfoPopup in user_courses) {
-    db.ref(refStr).once('value', function(snapshot) {
-      // console.log(snapshot.key, snapshot.val());
+  db.ref(refStr).once('value', function(snapshot) {
+    // console.log(snapshot.key, snapshot.val());
 
-      $('.carousel.carousel-slider').carousel("destroy");
-      $(".carousel-item").each(function(i) {
-        this.remove();
-      })
-      var user_data = snapshot.val();
+    $('.carousel.carousel-slider').carousel("destroy");
+    $(".carousel-item").each(function(i) {
+      this.remove();
+    })
+    var user_data = snapshot.val();
+    if (user_data != undefined) {
       var disabledUsers = user_data[uid];
       var usersToUpdate = [];
 
@@ -324,25 +396,35 @@ function updateInfoModal(refStr, openModal) {
       if(usersToUpdate.length < 1) {
         $("#userInfo").modal("close");
       }
-    });
-  // }
+    } else {
+      $("#userInfo").modal("close");
+    }
+  });
 }
 
 function addUser() {
   disableUser(this);
-  console.log("Start Inbox");
-  db.ref("inbox/" + this.dataset.userId + "/" + uid).set({
-    read: false
-  }).then(function() {
-    console.log("Added to inbox");
-  })
-  db.ref("matches/" + combineStrings(uid, this.dataset.userId) + "/" + uid).set(true).then(function() {
-    console.log("Added to matches");
+  checkIfMatched(this);
+}
+
+function checkIfMatched(passedThis) {
+  db.ref("matches/" + combineStrings(uid, passedThis.dataset.userId) + "/" + uid).once("value").then(function(snapshot) {
+    if (snapshot.val()) {
+      console.log("IT'S A MATCH!");
+    } else {
+      db.ref("inbox/" + passedThis.dataset.userId + "/" + uid).set({
+        read: false
+      }).then(function() {
+        console.log("Added to inbox");
+      })
+    }
+    db.ref("matches/" + combineStrings(uid, passedThis.dataset.userId) + "/" + passedThis.dataset.userId).set(true).then(function() {
+      console.log("Added to matches");
+    })
   })
 }
 
 function hideUser() {
-  // console.log()
   disableUser(this);
 }
 
@@ -355,20 +437,25 @@ function disableUser(passedThis) {
   } else {
     carouselIndex = 0;
   }
-  // $('#userInfo').modal('close');
-  db.ref("user_courses/" + courseId + "/" + uid + "/" + userId).set(true).then(function() {
-    var ch = $('.carousel-item').height();
-    $(".carousel-item").css({'max-width':ch/2+'px'});
-    $(".carousel-item").css({"left":"calc(50% - " + ch/4 + "px)"});
-    $('.carousel.carousel-slider').carousel({
-        duration: 200,
-        fullWidth: true,
-        indicators: false,
-        noWrap: false,
-        padding: 300,
+  if (courseId == uid) {
+    db.ref("inbox/" + uid + "/" + userId).remove();
+  } else {
+    // $('#userInfo').modal('close');
+    db.ref("user_courses/" + courseId + "/" + uid + "/" + userId).set(true).then(function() {
+      var ch = $('.carousel-item').height();
+      $(".carousel-item").css({'max-width':ch/2+'px'});
+      $(".carousel-item").css({"left":"calc(50% - " + ch/4 + "px)"});
+      $('.carousel.carousel-slider').carousel({
+          duration: 200,
+          fullWidth: true,
+          indicators: false,
+          noWrap: false,
+          padding: 300,
+      });
+      $('.carousel.carousel-slider').carousel("set", carouselIndex);
     });
-    $('.carousel.carousel-slider').carousel("set", carouselIndex);
-  });
+  }
+  
 }
 
 function updateSwitch(id, checked) {
