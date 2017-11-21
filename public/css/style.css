@@ -185,6 +185,7 @@ textarea {
    background-color: unset;
    -webkit-box-shadow: unset;
    box-shadow: unset;
+   /*z-index: 1009!important;*/
 }
 
 .modal > .modal-content {

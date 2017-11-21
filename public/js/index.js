@@ -18,6 +18,7 @@ $(document).ready(function(){
     endingTop: '0%', // Ending top style attribute
   });
   $('#confirmRemoveCourse').modal();
+  $('#inboxModal').modal();
   $('#userInfo').modal({
     ready: function(modal, trigger) {
       var ch = $('.carousel-item').height();
@@ -34,7 +35,6 @@ $(document).ready(function(){
       $('.carousel.carousel-slider').carousel("set", carouselIndex);
     }
   });
-  $('#inboxModal').modal();
 });
 
 function authChange(uid, data) {
@@ -97,7 +97,8 @@ function inboxUpdated(snapshot) {
       }
     });
   }
-  courseUpdated(snapshot, "inbox", true)
+  courseUpdated(snapshot, "inbox", true);
+  updateInfoModal("inbox/" + uid)
 }
 
 function courseUpdated(snapshot, courseId, inbox) {
@@ -179,7 +180,9 @@ function courseUpdated(snapshot, courseId, inbox) {
         });
       });
     }
-    updateInfoModal();
+    if ($("#userInfo").hasClass("open")) {
+      updateInfoModal('user_courses/' + cidInfoPopup);
+    }
   }
 }
 
@@ -188,17 +191,23 @@ var cidInfoPopup;
 function userInfoClicked() {
   cidInfoPopup = this.dataset.classId;
   carouselIndex = this.dataset.userIndex;
-  updateInfoModal(true);
+  if (cidInfoPopup == "inbox") {
+    updateInfoModal("inbox/" + uid, true);
+  } else {
+    $("#userInfo").css({"z-index": "1009"})
+    updateInfoModal('user_courses/' + cidInfoPopup, true);
+
+  }
 }
 
 function closeInfo() {
-  console.log("Test");
   $('#userInfo').modal('close');
 }
 
-function updateInfoModal(openModal) {
-  if (cidInfoPopup in user_courses) {
-    db.ref('user_courses/' + cidInfoPopup).once('value', function(snapshot) {
+function updateInfoModal(refStr, openModal) {
+  console.log(cidInfoPopup);
+  // if (cidInfoPopup in user_courses) {
+    db.ref(refStr).once('value', function(snapshot) {
       // console.log(snapshot.key, snapshot.val());
 
       $('.carousel.carousel-slider').carousel("destroy");
@@ -316,7 +325,7 @@ function updateInfoModal(openModal) {
         $("#userInfo").modal("close");
       }
     });
-  }
+  // }
 }
 
 function addUser() {
@@ -333,6 +342,7 @@ function addUser() {
 }
 
 function hideUser() {
+  // console.log()
   disableUser(this);
 }
 

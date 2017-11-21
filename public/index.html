@@ -93,25 +93,24 @@
             <a id="confirmDeleteBtn" class="red white-text modal-action modal-close waves-effect waves-light btn-flat">Yes</a>
          </div>
       </div>
+      <div id="inboxModal" class="modal modal-fixed-footer">
+         <div class="modal-content">
+            <h4>Inbox</h4>
+            <div id="inboxContent" style="height:70%;overflow:auto;"> 
+            </div>
+         </div>
+         <div class="modal-footer">
+            <a class="purple white-text modal-action modal-close waves-effect waves-light btn-flat">Done</a>
+         </div>
+      </div>
       <div id="userInfo" class="modal">
-      <div class="modal-content">
+        <div class="modal-content">
           <div id="infoCarousel" class="carousel carousel-slider">
             <div class="carousel-fixed-item center">
               <a class="btn-floating waves-effect purple white-text left hide-on-small-only" onclick="$('.carousel').carousel('prev');"><i class="material-icons">arrow_back</i></a>
               <a class="btn-floating waves-effect purple white-text right hide-on-small-only" onclick="$('.carousel').carousel('next');"><i class="material-icons">arrow_forward</i></a>
             </div>
           </div>
-         </div>
-      </div>
-      <div id="inboxModal" class="modal modal-fixed-footer">
-         <div class="modal-content">
-            <h4>Inbox</h4>
-            <div id="inboxContent" style="height:70%;overflow:auto;">
-               
-            </div>
-         </div>
-         <div class="modal-footer">
-            <a class="purple white-text modal-action modal-close waves-effect waves-light btn-flat">Done</a>
          </div>
       </div>
       <script src="https://www.gstatic.com/firebasejs/4.6.0/firebase.js"></script>
