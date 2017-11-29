@@ -151,6 +151,7 @@ function userCoursesUpdated(snapshot) {
   });
 }
 
+var previousMatches;
 function inboxUpdated(snapshot) {
   var unread = 0;
   var inbox = snapshot.val();
@@ -159,16 +160,20 @@ function inboxUpdated(snapshot) {
     if (!read) {
       unread++;
     }
-    console.log(unread)
-    $(".badge").each(function() {
-      this.innerHTML = unread;
-      if (unread > 0) {
-        this.style.display = "inline-block";
-      } else {
-        this.style.display = "none";
-      }
-    });
+    console.log(unread);
   }
+  if (previousMatches != undefined && previousMatches < unread) {
+    Materialize.toast("New Potential Match!", 2000);
+  }
+  previousMatches = unread;
+  $(".badge").each(function() {
+    this.innerHTML = unread;
+    if (unread > 0) {
+      this.style.display = "inline-block";
+    } else {
+      this.style.display = "none";
+    }
+  });
   courseUpdated(snapshot, "inbox", true);
   updateInfoModal("inbox/" + uid)
 }
@@ -230,7 +235,7 @@ function courseUpdated(snapshot, courseId, inbox) {
     }
     collectionContainer.appendChild(collection);
     bodyElement.appendChild(collectionContainer);
-    $('.secondary-content').on("click touchstart", userInfoClicked);
+    $('.secondary-content').on("click touchend", userInfoClicked);
 
     for (var i = 0; i < usersToUpdate.length; i++) {
       var usersToUpdateID = usersToUpdate[i];
@@ -386,9 +391,9 @@ function updateInfoModal(refStr, openModal) {
           });
         });
       }
-      $(".infoClose").on("click touchstart", closeInfo);
-      $(".hideUser").on("click touchstart", hideUser);
-      $(".addUser").on("click touchstart", addUser);
+      $(".infoClose").on("click touchend", closeInfo);
+      $(".hideUser").on("click touchend", hideUser);
+      $(".addUser").on("click touchend", addUser);
       if (openModal) {
         $("#userInfo").modal("open");
       }
@@ -402,7 +407,7 @@ function updateInfoModal(refStr, openModal) {
   });
 }
 
-function addUser() {
+function addUser(e) {
   disableUser(this);
   checkIfMatched(this);
 }
@@ -424,7 +429,8 @@ function checkIfMatched(passedThis) {
   })
 }
 
-function hideUser() {
+function hideUser(e) {
+  console.log(":(");
   disableUser(this);
 }
 
